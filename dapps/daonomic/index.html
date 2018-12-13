@@ -72,21 +72,15 @@
     <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.33/dist/web3.min.js"></script>
     <script>
         var config = {
-            rinkeby: {
-                url: 'https://rinkeby.infura.io/DtzEYY0Km2BA3YwyJcBG',
-                kyber_network: '0x39CC6802cF1625C30548B57D885932CB381EB4a4',
-                wrapper: '0xf1f149ee80118c909d970b5cd39a11b2d5498c6e'
-            },
             mainnet: {
                 url: 'https://mainnet.infura.io',
-                kyber_network: '0x39CC6802cF1625C30548B57D885932CB381EB4a4',
-                wrapper: '0xffa4bee0b9cd2c2e4eacb8d8f11096baa3e6c55d'
+                kyber_network: '0x818E6FECD516Ecc3849DAf6845e3EC868087B755',
+                wrapper: '0xb83609dfefb2fe3ccf8867f4cf8ae54286220119'
             },
             ropsten: {
                 url: 'https://ropsten.infura.io/DtzEYY0Km2BA3YwyJcBG',
                 kyber_network: '0x818E6FECD516Ecc3849DAf6845e3EC868087B755',
-                wrapper: '0xcf19fe69f6f4f6c9fb54028f0f755590aba576d6',
-                saleAddr: '0x5b0582823cd14b56070ddab7c6426930190d1bb0'
+                wrapper: '0x24dff8d7c58f42803d91fe4bc4e1346c5e698f0d'
             }
         }
 
@@ -169,6 +163,7 @@
           var disabledTokens = getParameterByName('disabledTokens') || [];
 
           var saleAddr = getParameterByName('saleAddr');
+          var buyerAddr = getParameterByName('buyerAddr');
           var amount = getParameterByName('amount');
           var errors = validateParams(commissionID, callback, signer, saleAddr, amount);
 
@@ -178,7 +173,7 @@
           network = adjustNetwork(network);
 
           return {
-            productId, productName, network, errors, productAvatar, callback,
+            productId, productName, network, errors, productAvatar, callback, buyerAddr,
             paramForwarding, signer, commissionID, pinnedTokens, disabledTokens, saleAddr, amount
           }
         }
@@ -188,7 +183,7 @@
             var configData = config[params.network]
             var url = configData.url
             var web3 = new Web3(new Web3.providers.HttpProvider(url, 3000));
-            var WRAPPER_ABI = [{"constant":true,"inputs":[{"name":"_sale","type":"address"}],"name":"getETHPrice","outputs":[{"name":"ethPrice","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_kyberProxy","type":"address"},{"name":"_sale","type":"address"},{"name":"token","type":"address"},{"name":"tokenQty","type":"uint256"},{"name":"maxDestQty","type":"uint256"},{"name":"minRate","type":"uint256"},{"name":"walletId","type":"address"}],"name":"tradeAndBuy","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_kyberProxy","type":"address"},{"name":"_sale","type":"address"},{"name":"token","type":"address"}],"name":"getTokenRate","outputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"name":"ETHReceived","type":"event"}]
+            var WRAPPER_ABI = [{"constant":true,"inputs":[{"name":"_sale","type":"address"}],"name":"getETHPrice","outputs":[{"name":"ethPrice","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_kyberProxy","type":"address"},{"name":"_sale","type":"address"},{"name":"token","type":"address"},{"name":"tokenQty","type":"uint256"},{"name":"maxDestQty","type":"uint256"},{"name":"minRate","type":"uint256"},{"name":"walletId","type":"address"},{"name":"buyer","type":"address"}],"name":"tradeAndBuy","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_kyberProxy","type":"address"},{"name":"_sale","type":"address"},{"name":"token","type":"address"}],"name":"getTokenRate","outputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"name":"ETHReceived","type":"event"}]
             var wapperContract = new web3.eth.Contract(WRAPPER_ABI, configData.wrapper)
 
             window.kyberWidgetInstance.render({
@@ -221,7 +216,8 @@
                         sourceAmount,
                         maxDestAmount,
                         minConversionRate,
-                        walletId).encodeABI()
+                        walletId,
+                        params.buyerAddr).encodeABI()
 
                     return new Promise((resolve, reject) => {
                         resolve({ value: 0, data, gasLimit: 800000, to: configData.wrapper })
